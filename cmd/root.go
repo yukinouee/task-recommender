@@ -110,7 +110,7 @@ var completeCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&apiURL, "api", "http://localhost:10000", "APIサーバーのURL（例: http://localhost:10000）")
+	rootCmd.PersistentFlags().StringVar(&apiURL, "api", "https://task-recommender.onrender.com", "APIサーバーのURL")
 
 	addCmd.Flags().StringVarP(&taskName, "name", "n", "", "タスク名")
 	addCmd.Flags().StringVarP(&taskPriority, "priority", "p", "", "優先度（0: 低, 1: 中, 2: 高）")
