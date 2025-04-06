@@ -9,6 +9,7 @@ import (
 	"task-recommender/pkg/todo"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 var taskList todo.TaskList
@@ -52,8 +53,22 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
+		// IDが空の場合は新しいIDを生成
+		if task.ID == "" {
+			task.ID = uuid.New().String()
+		}
+
 		id := taskList.AddTask(task.Name, task.Priority, task.DueDate, task.EstimatedDuration)
-		c.JSON(http.StatusCreated, gin.H{"id": id})
+		if id == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "タスクの追加に失敗しました"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"id":      id,
+			"message": "タスクを追加しました",
+		})
 	})
 
 	// タスクの削除

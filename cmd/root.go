@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"task-recommender/pkg/todo"
@@ -30,6 +32,15 @@ var rootCmd = &cobra.Command{
     task-recommender add --name 会議の準備 --priority 2 --due 2024/03/21-15:04 --duration 30
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// APIのURLが正しい形式かチェック
+		if _, err := url.Parse(apiURL); err != nil {
+			fmt.Printf("不正なAPIのURL形式です: %v\n", err)
+			os.Exit(1)
+		}
+
+		// URLの末尾のスラッシュを削除
+		apiURL = strings.TrimRight(apiURL, "/")
+
 		taskList = todo.NewTaskList(apiURL)
 		if err := taskList.FetchTasks(); err != nil {
 			fmt.Printf("タスクの取得に失敗: %v\n", err)
@@ -99,7 +110,7 @@ var completeCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&apiURL, "api", "http://localhost:8080", "APIサーバーのURL")
+	rootCmd.PersistentFlags().StringVar(&apiURL, "api", "http://localhost:10000", "APIサーバーのURL（例: http://localhost:10000）")
 
 	addCmd.Flags().StringVarP(&taskName, "name", "n", "", "タスク名")
 	addCmd.Flags().StringVarP(&taskPriority, "priority", "p", "", "優先度（0: 低, 1: 中, 2: 高）")
