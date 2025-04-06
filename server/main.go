@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -91,7 +92,8 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "10000"
 	}
-	r.Run(":" + port)
+	fmt.Printf("Starting server on port %s...\n", port)
+	r.Run("0.0.0.0:" + port)
 }
