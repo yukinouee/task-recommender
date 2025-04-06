@@ -6,8 +6,9 @@ COPY . .
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main server/main.go
+# サーバーコードをビルド
+RUN CGO_ENABLED=0 GOOS=linux go build -o app server/main.go
 
 EXPOSE 10000
 
-CMD ["./main"] 
+CMD ["./app"] 
