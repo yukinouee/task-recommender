@@ -14,7 +14,11 @@ import (
 var taskList todo.TaskList
 
 func main() {
-	r := gin.Default()
+	// 本番環境用の設定
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Logger())   // ログ出力を有効化
+	r.Use(gin.Recovery()) // パニック時の回復を有効化
 
 	// CORS設定
 	r.Use(func(c *gin.Context) {
@@ -26,6 +30,14 @@ func main() {
 			return
 		}
 		c.Next()
+	})
+
+	// ヘルスチェックエンドポイント
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"port":   os.Getenv("PORT"),
+		})
 	})
 
 	// タスク一覧の取得
@@ -94,6 +106,11 @@ func main() {
 	if port == "" {
 		port = "10000"
 	}
-	fmt.Printf("Starting server on port %s...\n", port)
-	r.Run("0.0.0.0:" + port)
+
+	addr := fmt.Sprintf("0.0.0.0:%s", port)
+	fmt.Printf("Starting server on %s...\n", addr)
+
+	if err := r.Run(addr); err != nil {
+		log.Fatalf("サーバーの起動に失敗しました: %v", err)
+	}
 }
