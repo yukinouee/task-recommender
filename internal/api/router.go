@@ -17,7 +17,7 @@ func SetupRouter(taskController *controller.TaskController) http.Handler {
 	// ルートパス
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Write([]byte(`
                 <html>
                     <head>
@@ -25,7 +25,7 @@ func SetupRouter(taskController *controller.TaskController) http.Handler {
                     </head>
                     <body>
                         <h1>タスク管理アプリケーションのAPIサーバー</h1>
-                        <p><a href="/swagger/index.html">API ドキュメントを表示</a></p>
+                        <p><a href="/swagger/index.html">API Document by Swagger UI</a></p>
                     </body>
                 </html>
             `))
