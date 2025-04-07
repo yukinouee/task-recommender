@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	_ "task-recommender/docs"
 	"task-recommender/internal/api"
 	"task-recommender/internal/controller"
 	"task-recommender/internal/service"
