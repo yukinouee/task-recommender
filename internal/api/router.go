@@ -100,7 +100,7 @@ func SetupRouter(taskController *controller.TaskController) http.Handler {
 	})
 
 	// Swagger UI
-	mux.Handle("/swagger/", http.StripPrefix("/swagger", NewSwaggerHandler()))
+	mux.Handle("/swagger/", NewSwaggerHandler())
 
 	return mux
 }
