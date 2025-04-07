@@ -1,16 +1,16 @@
-// Package docs Swagger APIドキュメント
+// @Package docs Swagger APIドキュメント
 //
-// タスク管理アプリケーションのAPIドキュメント
+// @タスク管理アプリケーションのAPIドキュメント
 //
-// Schemes: http, https
-// BasePath: /
-// Version: 1.0.0
+// @Schemes: http, https
+// @BasePath: /
+// @Version: 1.0.0
 //
-// Consumes:
-// - application/json
+// @Consumes:
+// @- application/json
 //
 // Produces:
-// - application/json
+// @- application/json
 //
-// swagger:meta
+// @swagger:meta
 package docs

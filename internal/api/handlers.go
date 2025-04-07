@@ -19,10 +19,10 @@ func NewTaskHandler(controller *controller.TaskController) *TaskHandler {
 	return &TaskHandler{controller: controller}
 }
 
-// swagger:route GET /tasks tasks listTasks
-// タスク一覧を取得します
-// responses:
-//   200: body:[]Task
+// @swagger:route GET /tasks tasks listTasks
+// @タスク一覧を取得します
+// @responses:
+// @  200: body:[]Task
 
 // HandleListTasks タスク一覧を取得するハンドラー
 func (h *TaskHandler) HandleListTasks(w http.ResponseWriter, r *http.Request) {
@@ -36,10 +36,10 @@ func (h *TaskHandler) HandleListTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
-// swagger:route POST /tasks tasks createTask
-// 新しいタスクを作成します
-// responses:
-//   201: body:map[string]int
+// @swagger:route POST /tasks tasks createTask
+// @新しいタスクを作成します
+// @responses:
+// @  201: body:map[string]int
 
 // HandleCreateTask 新しいタスクを作成するハンドラー
 func (h *TaskHandler) HandleCreateTask(w http.ResponseWriter, r *http.Request) {
@@ -77,15 +77,15 @@ func (h *TaskHandler) HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
 
-// swagger:route PUT /tasks/{id}/complete tasks completeTask
-// タスクを完了としてマークします
-// parameters:
-//   + name: id
-//     in: path
-//     type: integer
-//     required: true
-// responses:
-//   200: body:map[string]string
+// @swagger:route PUT /tasks/{id}/complete tasks completeTask
+// @タスクを完了としてマークします
+// @parameters:
+// @  + name: id
+// @    in: path
+// @    type: integer
+// @    required: true
+// @responses:
+// @  200: body:map[string]string
 
 // HandleCompleteTask タスクを完了としてマークするハンドラー
 func (h *TaskHandler) HandleCompleteTask(w http.ResponseWriter, r *http.Request) {
@@ -105,15 +105,15 @@ func (h *TaskHandler) HandleCompleteTask(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]string{"status": "completed"})
 }
 
-// swagger:route DELETE /tasks/{id} tasks deleteTask
-// タスクを削除します
-// parameters:
-//   + name: id
-//     in: path
-//     type: integer
-//     required: true
-// responses:
-//   200: body:map[string]string
+// @swagger:route DELETE /tasks/{id} tasks deleteTask
+// @タスクを削除します
+// @parameters:
+// @  + name: id
+// @    in: path
+// @    type: integer
+// @    required: true
+// @responses:
+// @  200: body:map[string]string
 
 // HandleDeleteTask タスクを削除するハンドラー
 func (h *TaskHandler) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
@@ -133,25 +133,25 @@ func (h *TaskHandler) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "deleted"})
 }
 
-// swagger:route PUT /tasks/{id}/priority tasks updateTaskPriority
-// タスクの優先度を更新します
-// parameters:
-//   + name: id
-//     in: path
-//     type: integer
-//     required: true
-//   + name: body
-//     in: body
-//     required: true
-//     schema:
-//       type: object
-//       required:
-//         - priority
-//       properties:
-//         priority:
-//           type: integer
-// responses:
-//   200: body:map[string]string
+// @swagger:route PUT /tasks/{id}/priority tasks updateTaskPriority
+// @タスクの優先度を更新します
+// @parameters:
+// @  + name: id
+// @    in: path
+// @    type: integer
+// @    required: true
+// @  + name: body
+// @    in: body
+// @    required: true
+// @    schema:
+// @      type: object
+// @      required:
+// @        - priority
+// @      properties:
+// @        priority:
+// @          type: integer
+// @responses:
+// @  200: body:map[string]string
 
 // HandleUpdatePriority タスクの優先度を更新するハンドラー
 func (h *TaskHandler) HandleUpdatePriority(w http.ResponseWriter, r *http.Request) {
@@ -180,26 +180,26 @@ func (h *TaskHandler) HandleUpdatePriority(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]string{"status": "priority updated"})
 }
 
-// swagger:route PUT /tasks/{id}/due tasks updateTaskDueDate
-// タスクの期限日を更新します
-// parameters:
-//   + name: id
-//     in: path
-//     type: integer
-//     required: true
-//   + name: body
-//     in: body
-//     required: true
-//     schema:
-//       type: object
-//       required:
-//         - due_date
-//       properties:
-//         due_date:
-//           type: string
-//           format: date
-// responses:
-//   200: body:map[string]string
+// @swagger:route PUT /tasks/{id}/due tasks updateTaskDueDate
+// @タスクの期限日を更新します
+// @parameters:
+// @  + name: id
+// @    in: path
+// @    type: integer
+// @    required: true
+// @  + name: body
+// @    in: body
+// @    required: true
+// @    schema:
+// @      type: object
+// @      required:
+// @        - due_date
+// @      properties:
+// @        due_date:
+// @          type: string
+// @          format: date
+// @responses:
+// @  200: body:map[string]string
 
 // HandleUpdateDueDate タスクの期限日を更新するハンドラー
 func (h *TaskHandler) HandleUpdateDueDate(w http.ResponseWriter, r *http.Request) {
@@ -234,25 +234,25 @@ func (h *TaskHandler) HandleUpdateDueDate(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(map[string]string{"status": "due date updated"})
 }
 
-// swagger:route PUT /tasks/{id}/duration tasks updateTaskDuration
-// タスクの見積時間を更新します
-// parameters:
-//   + name: id
-//     in: path
-//     type: integer
-//     required: true
-//   + name: body
-//     in: body
-//     required: true
-//     schema:
-//       type: object
-//       required:
-//         - duration
-//       properties:
-//         duration:
-//           type: integer
-// responses:
-//   200: body:map[string]string
+// @swagger:route PUT /tasks/{id}/duration tasks updateTaskDuration
+// @タスクの見積時間を更新します
+// @parameters:
+// @  + name: id
+// @    in: path
+// @    type: integer
+// @    required: true
+// @  + name: body
+// @    in: body
+// @    required: true
+// @    schema:
+// @      type: object
+// @      required:
+// @        - duration
+// @      properties:
+// @        duration:
+// @          type: integer
+// @responses:
+// @  200: body:map[string]string
 
 // HandleUpdateEstimatedDuration タスクの見積時間を更新するハンドラー
 func (h *TaskHandler) HandleUpdateEstimatedDuration(w http.ResponseWriter, r *http.Request) {
