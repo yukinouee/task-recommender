@@ -1,4 +1,283 @@
+basePath: /
+definitions:
+  model.Task:
+    properties:
+      completed_at:
+        description: |-
+          @タスクの完了日時
+          @example: 2023-01-02T15:30:00Z
+        type: string
+      created_at:
+        description: |-
+          @タスクの作成日時
+          @example: 2023-01-01T10:00:00Z
+        type: string
+      description:
+        description: |-
+          @タスクの説明
+          @example: スーパーで低脂肪牛乳を購入する
+        type: string
+      done:
+        description: |-
+          @タスクの完了状態
+          @example: false
+        type: boolean
+      due_date:
+        description: |-
+          @タスクの期限日
+          @example: 2023-12-31T00:00:00Z
+        type: string
+      estimated_duration:
+        description: |-
+          @タスクの見積所要時間（分）
+          @example: 30
+          @min: 0
+        type: integer
+      id:
+        description: |-
+          @タスクのID
+          @example: 1
+        type: integer
+      priority:
+        description: |-
+          @タスクの優先度 (1=低, 2=中, 3=高)
+          @example: 2
+          @min: 1
+          @max: 3
+        type: integer
+      title:
+        description: |-
+          タスクのタイトル
+          @example: 牛乳を買う
+          @required: true
+        type: string
+    type: object
+host: task-recommender.onrender.com
 info:
   contact: {}
-paths: {}
+  description: タスクの追加、一覧表示、完了マーク、削除などの機能を提供するAPI
+  title: タスク管理アプリケーションAPI
+  version: "1.0"
+paths:
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: すべてのタスクの一覧を取得します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Task'
+            type: array
+      summary: タスク一覧を取得
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: タイトル、説明、優先度、期限日、見積時間を指定して新しいタスクを作成します
+      parameters:
+      - description: タスク情報
+        in: body
+        name: task
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: 新しいタスクを作成
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを削除します
+      parameters:
+      - description: タスクID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: タスクを削除
+      tags:
+      - tasks
+  /tasks/{id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを完了状態に更新します
+      parameters:
+      - description: タスクID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: タスクを完了としてマーク
+      tags:
+      - tasks
+  /tasks/{id}/due:
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクの期限日を更新します
+      parameters:
+      - description: タスクID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 期限日情報
+        in: body
+        name: dueDate
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: タスクの期限日を更新
+      tags:
+      - tasks
+  /tasks/{id}/duration:
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクの見積時間を更新します
+      parameters:
+      - description: タスクID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 見積時間情報
+        in: body
+        name: duration
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: タスクの見積時間を更新
+      tags:
+      - tasks
+  /tasks/{id}/priority:
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクの優先度を更新します
+      parameters:
+      - description: タスクID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 優先度情報
+        in: body
+        name: priority
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 不正なリクエスト
+          schema:
+            type: string
+        "500":
+          description: サーバーエラー
+          schema:
+            type: string
+      summary: タスクの優先度を更新
+      tags:
+      - tasks
 swagger: "2.0"

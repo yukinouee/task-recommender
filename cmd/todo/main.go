@@ -1,3 +1,8 @@
+// @title タスク管理アプリケーションAPI
+// @version 1.0
+// @description タスクの追加、一覧表示、完了マーク、削除などの機能を提供するAPI
+// @host task-recommender.onrender.com
+// @BasePath /
 package main
 
 import (

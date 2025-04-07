@@ -19,12 +19,13 @@ func NewTaskHandler(controller *controller.TaskController) *TaskHandler {
 	return &TaskHandler{controller: controller}
 }
 
-// @swagger:route GET /tasks tasks listTasks
-// @タスク一覧を取得します
-// @responses:
-// @  200: body:[]Task
-
-// HandleListTasks タスク一覧を取得するハンドラー
+// @Summary タスク一覧を取得
+// @Description すべてのタスクの一覧を取得します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Success 200 {array} model.Task
+// @Router /tasks [get]
 func (h *TaskHandler) HandleListTasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := h.controller.ListTasks()
 	if err != nil {
@@ -36,12 +37,16 @@ func (h *TaskHandler) HandleListTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
-// @swagger:route POST /tasks tasks createTask
-// @新しいタスクを作成します
-// @responses:
-// @  201: body:map[string]int
-
-// HandleCreateTask 新しいタスクを作成するハンドラー
+// @Summary 新しいタスクを作成
+// @Description タイトル、説明、優先度、期限日、見積時間を指定して新しいタスクを作成します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param task body object true "タスク情報"
+// @Success 201 {object} map[string]int
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks [post]
 func (h *TaskHandler) HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 	var task struct {
 		Title             string `json:"title"`
@@ -77,17 +82,16 @@ func (h *TaskHandler) HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
 
-// @swagger:route PUT /tasks/{id}/complete tasks completeTask
-// @タスクを完了としてマークします
-// @parameters:
-// @  + name: id
-// @    in: path
-// @    type: integer
-// @    required: true
-// @responses:
-// @  200: body:map[string]string
-
-// HandleCompleteTask タスクを完了としてマークするハンドラー
+// @Summary タスクを完了としてマーク
+// @Description 指定されたIDのタスクを完了状態に更新します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "タスクID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks/{id}/complete [put]
 func (h *TaskHandler) HandleCompleteTask(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromPath(r.URL.Path)
 	if err != nil {
@@ -105,17 +109,16 @@ func (h *TaskHandler) HandleCompleteTask(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]string{"status": "completed"})
 }
 
-// @swagger:route DELETE /tasks/{id} tasks deleteTask
-// @タスクを削除します
-// @parameters:
-// @  + name: id
-// @    in: path
-// @    type: integer
-// @    required: true
-// @responses:
-// @  200: body:map[string]string
-
-// HandleDeleteTask タスクを削除するハンドラー
+// @Summary タスクを削除
+// @Description 指定されたIDのタスクを削除します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "タスクID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks/{id} [delete]
 func (h *TaskHandler) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromPath(r.URL.Path)
 	if err != nil {
@@ -133,27 +136,17 @@ func (h *TaskHandler) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "deleted"})
 }
 
-// @swagger:route PUT /tasks/{id}/priority tasks updateTaskPriority
-// @タスクの優先度を更新します
-// @parameters:
-// @  + name: id
-// @    in: path
-// @    type: integer
-// @    required: true
-// @  + name: body
-// @    in: body
-// @    required: true
-// @    schema:
-// @      type: object
-// @      required:
-// @        - priority
-// @      properties:
-// @        priority:
-// @          type: integer
-// @responses:
-// @  200: body:map[string]string
-
-// HandleUpdatePriority タスクの優先度を更新するハンドラー
+// @Summary タスクの優先度を更新
+// @Description 指定されたIDのタスクの優先度を更新します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "タスクID"
+// @Param priority body object true "優先度情報"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks/{id}/priority [put]
 func (h *TaskHandler) HandleUpdatePriority(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromPath(r.URL.Path)
 	if err != nil {
@@ -180,28 +173,17 @@ func (h *TaskHandler) HandleUpdatePriority(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]string{"status": "priority updated"})
 }
 
-// @swagger:route PUT /tasks/{id}/due tasks updateTaskDueDate
-// @タスクの期限日を更新します
-// @parameters:
-// @  + name: id
-// @    in: path
-// @    type: integer
-// @    required: true
-// @  + name: body
-// @    in: body
-// @    required: true
-// @    schema:
-// @      type: object
-// @      required:
-// @        - due_date
-// @      properties:
-// @        due_date:
-// @          type: string
-// @          format: date
-// @responses:
-// @  200: body:map[string]string
-
-// HandleUpdateDueDate タスクの期限日を更新するハンドラー
+// @Summary タスクの期限日を更新
+// @Description 指定されたIDのタスクの期限日を更新します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "タスクID"
+// @Param dueDate body object true "期限日情報"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks/{id}/due [put]
 func (h *TaskHandler) HandleUpdateDueDate(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromPath(r.URL.Path)
 	if err != nil {
@@ -234,27 +216,17 @@ func (h *TaskHandler) HandleUpdateDueDate(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(map[string]string{"status": "due date updated"})
 }
 
-// @swagger:route PUT /tasks/{id}/duration tasks updateTaskDuration
-// @タスクの見積時間を更新します
-// @parameters:
-// @  + name: id
-// @    in: path
-// @    type: integer
-// @    required: true
-// @  + name: body
-// @    in: body
-// @    required: true
-// @    schema:
-// @      type: object
-// @      required:
-// @        - duration
-// @      properties:
-// @        duration:
-// @          type: integer
-// @responses:
-// @  200: body:map[string]string
-
-// HandleUpdateEstimatedDuration タスクの見積時間を更新するハンドラー
+// @Summary タスクの見積時間を更新
+// @Description 指定されたIDのタスクの見積時間を更新します
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "タスクID"
+// @Param duration body object true "見積時間情報"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} string "不正なリクエスト"
+// @Failure 500 {object} string "サーバーエラー"
+// @Router /tasks/{id}/duration [put]
 func (h *TaskHandler) HandleUpdateEstimatedDuration(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromPath(r.URL.Path)
 	if err != nil {

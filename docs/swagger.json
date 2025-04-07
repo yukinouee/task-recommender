@@ -1,7 +1,391 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "タスクの追加、一覧表示、完了マーク、削除などの機能を提供するAPI",
+        "title": "タスク管理アプリケーションAPI",
+        "contact": {},
+        "version": "1.0"
     },
-    "paths": {}
+    "host": "task-recommender.onrender.com",
+    "basePath": "/",
+    "paths": {
+        "/tasks": {
+            "get": {
+                "description": "すべてのタスクの一覧を取得します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスク一覧を取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Task"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "タイトル、説明、優先度、期限日、見積時間を指定して新しいタスクを作成します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "新しいタスクを作成",
+                "parameters": [
+                    {
+                        "description": "タスク情報",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "delete": {
+                "description": "指定されたIDのタスクを削除します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスクを削除",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "タスクID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/complete": {
+            "put": {
+                "description": "指定されたIDのタスクを完了状態に更新します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスクを完了としてマーク",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "タスクID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/due": {
+            "put": {
+                "description": "指定されたIDのタスクの期限日を更新します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスクの期限日を更新",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "タスクID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "期限日情報",
+                        "name": "dueDate",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/duration": {
+            "put": {
+                "description": "指定されたIDのタスクの見積時間を更新します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスクの見積時間を更新",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "タスクID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "見積時間情報",
+                        "name": "duration",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/priority": {
+            "put": {
+                "description": "指定されたIDのタスクの優先度を更新します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "タスクの優先度を更新",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "タスクID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "優先度情報",
+                        "name": "priority",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不正なリクエスト",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "サーバーエラー",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.Task": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "description": "@タスクの完了日時\n@example: 2023-01-02T15:30:00Z",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "@タスクの作成日時\n@example: 2023-01-01T10:00:00Z",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "@タスクの説明\n@example: スーパーで低脂肪牛乳を購入する",
+                    "type": "string"
+                },
+                "done": {
+                    "description": "@タスクの完了状態\n@example: false",
+                    "type": "boolean"
+                },
+                "due_date": {
+                    "description": "@タスクの期限日\n@example: 2023-12-31T00:00:00Z",
+                    "type": "string"
+                },
+                "estimated_duration": {
+                    "description": "@タスクの見積所要時間（分）\n@example: 30\n@min: 0",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "@タスクのID\n@example: 1",
+                    "type": "integer"
+                },
+                "priority": {
+                    "description": "@タスクの優先度 (1=低, 2=中, 3=高)\n@example: 2\n@min: 1\n@max: 3",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "タスクのタイトル\n@example: 牛乳を買う\n@required: true",
+                    "type": "string"
+                }
+            }
+        }
+    }
 }
