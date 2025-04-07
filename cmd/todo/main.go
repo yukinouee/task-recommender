@@ -1,52 +1,24 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"task-recommender/internal/controller"
-	"task-recommender/internal/model"
 	"task-recommender/internal/service"
-	"task-recommender/internal/view"
 	"task-recommender/pkg/db"
 )
 
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "10000" // Renderのデフォルトポート
+		port = "10000"
 	}
-
-	// コマンドラインフラグの設定
-	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	addTitle := addCmd.String("title", "", "タスクのタイトル")
-	addDesc := addCmd.String("desc", "", "タスクの説明")
-	addPriority := addCmd.Int("priority", 1, "タスクの優先度 (1=低, 2=中, 3=高)")
-	addDueDate := addCmd.String("due", "", "タスクの期限 (YYYY-MM-DD形式)")
-	addDuration := addCmd.Int("duration", 0, "タスクの見積所要時間（分）")
-
-	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-
-	completeCmd := flag.NewFlagSet("complete", flag.ExitOnError)
-	completeID := completeCmd.Int("id", 0, "完了にするタスクのID")
-
-	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
-	deleteID := deleteCmd.Int("id", 0, "削除するタスクのID")
-
-	priorityCmd := flag.NewFlagSet("priority", flag.ExitOnError)
-	priorityID := priorityCmd.Int("id", 0, "優先度を変更するタスクのID")
-	priorityValue := priorityCmd.Int("value", 1, "新しい優先度 (1=低, 2=中, 3=高)")
-
-	dueDateCmd := flag.NewFlagSet("due", flag.ExitOnError)
-	dueDateID := dueDateCmd.Int("id", 0, "期限を変更するタスクのID")
-	dueDateValue := dueDateCmd.String("date", "", "新しい期限 (YYYY-MM-DD形式)")
-
-	durationCmd := flag.NewFlagSet("duration", flag.ExitOnError)
-	durationID := durationCmd.Int("id", 0, "見積時間を変更するタスクのID")
-	durationValue := durationCmd.Int("minutes", 0, "新しい見積時間（分）")
 
 	// データベース接続
 	database, err := db.Connect()
@@ -56,153 +28,191 @@ func main() {
 	}
 	defer database.Close()
 
+	// データベース初期化
 	err = db.InitializeDatabase(database)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "データベース初期化エラー: %v\n", err)
 		os.Exit(1)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "タスク管理アプリケーションのAPIサーバーです")
-	})
-
-	fmt.Printf("サーバーを起動しています: 0.0.0.0:%s\n", port)
-	http.ListenAndServe("0.0.0.0:"+port, nil)
-
 	// サービスとコントローラーの初期化
 	taskService := service.NewTaskService(database)
 	taskController := controller.NewTaskController(taskService)
 
-	// コマンドライン引数がない場合はヘルプを表示
-	if len(os.Args) < 2 {
-		fmt.Println("使用方法: todo [add|list|complete|delete|priority|due|duration] [オプション]")
-		os.Exit(1)
-	}
+	// Webサーバーとして動作
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "タスク管理アプリケーションのAPIサーバーです")
+	})
 
-	// サブコマンドに基づいて処理を分岐
-	switch os.Args[1] {
-	case "add":
-		addCmd.Parse(os.Args[2:])
-		if *addTitle == "" {
-			fmt.Println("タイトルは必須です")
-			os.Exit(1)
-		}
-
-		var dueDate time.Time
-		if *addDueDate != "" {
-			var err error
-			dueDate, err = time.Parse("2006-01-02", *addDueDate)
+	// タスク一覧の取得と追加
+	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			tasks, err := taskController.ListTasks()
 			if err != nil {
-				fmt.Println("期限の形式が正しくありません。YYYY-MM-DD形式で指定してください")
-				os.Exit(1)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(tasks)
+			return
 		}
 
-		id, err := taskController.AddTask(*addTitle, *addDesc, *addPriority, dueDate, *addDuration)
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintTaskAdded(id, *addTitle)
+		if r.Method == "POST" {
+			var task struct {
+				Title             string `json:"title"`
+				Description       string `json:"description"`
+				Priority          int    `json:"priority"`
+				DueDate           string `json:"due_date"`
+				EstimatedDuration int    `json:"estimated_duration"`
+			}
 
-	case "list":
-		listCmd.Parse(os.Args[2:])
-		tasks, err := taskController.ListTasks()
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintTaskList(tasks.([]model.Task))
+			if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 
-	case "complete":
-		completeCmd.Parse(os.Args[2:])
-		if *completeID <= 0 {
-			fmt.Println("有効なIDを指定してください")
-			os.Exit(1)
-		}
-		err := taskController.CompleteTask(*completeID)
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintTaskCompleted(*completeID)
+			var dueDate time.Time
+			if task.DueDate != "" {
+				var err error
+				dueDate, err = time.Parse("2006-01-02", task.DueDate)
+				if err != nil {
+					http.Error(w, "日付の形式が不正です。YYYY-MM-DD形式で指定してください", http.StatusBadRequest)
+					return
+				}
+			}
 
-	case "delete":
-		deleteCmd.Parse(os.Args[2:])
-		if *deleteID <= 0 {
-			fmt.Println("有効なIDを指定してください")
-			os.Exit(1)
-		}
-		err := taskController.DeleteTask(*deleteID)
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintTaskDeleted(*deleteID)
-
-	case "priority":
-		priorityCmd.Parse(os.Args[2:])
-		if *priorityID <= 0 {
-			fmt.Println("有効なIDを指定してください")
-			os.Exit(1)
-		}
-		if *priorityValue < 1 || *priorityValue > 3 {
-			fmt.Println("優先度は1から3の間で指定してください")
-			os.Exit(1)
-		}
-		err := taskController.UpdatePriority(*priorityID, *priorityValue)
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintPriorityUpdated(*priorityID, *priorityValue)
-
-	case "due":
-		dueDateCmd.Parse(os.Args[2:])
-		if *dueDateID <= 0 {
-			fmt.Println("有効なIDを指定してください")
-			os.Exit(1)
-		}
-
-		var dueDate time.Time
-		if *dueDateValue != "" {
-			var err error
-			dueDate, err = time.Parse("2006-01-02", *dueDateValue)
+			id, err := taskController.AddTask(task.Title, task.Description, task.Priority, dueDate, task.EstimatedDuration)
 			if err != nil {
-				fmt.Println("期限の形式が正しくありません。YYYY-MM-DD形式で指定してください")
-				os.Exit(1)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
-		} else {
-			fmt.Println("期限日を指定してください")
-			os.Exit(1)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(map[string]int{"id": id})
+			return
 		}
 
-		err := taskController.UpdateDueDate(*dueDateID, dueDate)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	})
+
+	// 個別のタスク操作
+	http.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
+		pathParts := strings.Split(r.URL.Path, "/")
+		if len(pathParts) < 3 {
+			http.Error(w, "Invalid path", http.StatusBadRequest)
+			return
+		}
+
+		idStr := pathParts[2]
+		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
 		}
-		view.PrintDueDateUpdated(*dueDateID, dueDate)
 
-	case "duration":
-		durationCmd.Parse(os.Args[2:])
-		if *durationID <= 0 {
-			fmt.Println("有効なIDを指定してください")
-			os.Exit(1)
-		}
-		if *durationValue < 0 {
-			fmt.Println("見積時間は0以上で指定してください")
-			os.Exit(1)
-		}
-		err := taskController.UpdateEstimatedDuration(*durationID, *durationValue)
-		if err != nil {
-			view.PrintError(err)
-			os.Exit(1)
-		}
-		view.PrintDurationUpdated(*durationID, *durationValue)
+		// タスクの完了
+		if len(pathParts) >= 4 && pathParts[3] == "complete" && r.Method == "PUT" {
+			err := taskController.CompleteTask(id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-	default:
-		fmt.Println("不明なコマンドです。add, list, complete, delete, priority, due, durationのいずれかを使用してください")
-		os.Exit(1)
-	}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"status": "completed"})
+			return
+		}
+
+		// タスクの削除
+		if r.Method == "DELETE" {
+			err := taskController.DeleteTask(id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"status": "deleted"})
+			return
+		}
+
+		// 優先度の更新
+		if len(pathParts) >= 4 && pathParts[3] == "priority" && r.Method == "PUT" {
+			var data struct {
+				Priority int `json:"priority"`
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			err := taskController.UpdatePriority(id, data.Priority)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"status": "priority updated"})
+			return
+		}
+
+		// 期限日の更新
+		if len(pathParts) >= 4 && pathParts[3] == "due" && r.Method == "PUT" {
+			var data struct {
+				DueDate string `json:"due_date"`
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			dueDate, err := time.Parse("2006-01-02", data.DueDate)
+			if err != nil {
+				http.Error(w, "日付の形式が不正です。YYYY-MM-DD形式で指定してください", http.StatusBadRequest)
+				return
+			}
+
+			err = taskController.UpdateDueDate(id, dueDate)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"status": "due date updated"})
+			return
+		}
+
+		// 見積時間の更新
+		if len(pathParts) >= 4 && pathParts[3] == "duration" && r.Method == "PUT" {
+			var data struct {
+				Duration int `json:"duration"`
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			err := taskController.UpdateEstimatedDuration(id, data.Duration)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"status": "duration updated"})
+			return
+		}
+
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	})
+
+	fmt.Printf("サーバーを起動しています: 0.0.0.0:%s\n", port)
+	http.ListenAndServe("0.0.0.0:"+port, nil)
 }
